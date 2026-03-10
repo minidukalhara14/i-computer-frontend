@@ -13,7 +13,7 @@ export default function ProductCard(props) {
             />
 
             {/* Content */}
-            <div className="p-4 flex flex-col gap-2">
+            <div className="p-4 flex flex-col items-center justify-center gap-2">
 
                 <h1 className="text-lg font-semibold text-gray-800">
                     {props.name}

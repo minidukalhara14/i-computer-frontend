@@ -1,14 +1,25 @@
-
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import './App.css'
-import TrendingProducts from './components/trndingProducts'
+
+import HomePage from './pages/homePage'
+import AdminPage from './pages/adminPage'
+
 
 function App() {
   
 
   return (
     <>
-      <div>
-        <TrendingProducts/>
+      <div className="w-full h-screen flex justify-center items-center border-[6px]">
+       
+        <Routes>
+
+          <Route path="/" element={<HomePage/>} />
+          <Route path="/admin" element={<AdminPage/>} />
+
+        </Routes>
+        
+        
       </div>
       
     </>
