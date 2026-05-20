@@ -1,30 +1,50 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import uploadMedia from "../../utils/mediaUpload";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
-export default function AdminAddProductPage(){
+export default function AdminEditProductPage(){
 
-    const [productId, setProductId] = useState("");
-    const [name, setName] = useState("");
-    const [altNames, setAltNames] = useState("");
-    const [price, setPrice] = useState("");
-    const [labelledPrice, setLabelledPrice] = useState("");
-    const [description, setDescription] = useState("");
+    const location = useLocation();
+    const [productId, setProductId] = useState(location.state?.productId || "");
+    const [name, setName] = useState(location.state?.name || "");
+    const [altNames, setAltNames] = useState(location.state?.altName? location.state.altName.join(",") : "");
+    const [price, setPrice] = useState(location.state?.price || "");
+    const [labelledPrice, setLabelledPrice] = useState(location.state?.labelledPrice || "");
+    const [description, setDescription] = useState(location.state?.description || "");
     const [images, setImages] = useState([]);
-    const [brand, setBrand] = useState("");
-    const [model, setModel] = useState("");
-    const [category, setCategory] = useState("");
-    const [isAvailable, setIsAvailable] = useState(true);
-    const [stock, setStock] = useState(0);
-    const [isSaving, setIsSaving] = useState(false);
+    const [brand, setBrand] = useState(location.state?.brand || "");
+    const [model, setModel] = useState(location.state?.model || "");
+    const [category, setCategory] = useState(location.state?.category || "");
+    const [isAvailable, setIsAvailable] = useState(location.state?.isAvailable || false);
+    const [stock, setStock] = useState(location.state?.stock || 0);
+    const [isUpdating, setIsUpdating] = useState(false);
+
     const navigate = useNavigate();
+
+    console.log("Location state: ", location.state);
+    
+    console.log("ALT NAMES:", location.state?.altNames); 
+     console.log("ALT NAMES:", location.state?.name);
+    
+    useEffect(
+        ()=>{
+            if(location.state==null){
+                toast.error("No product data found. Please select a product to edit.");
+                navigate("/admin/products");
+            }
+        },[]
+    )
+
+    
     
     async function handleSave(){
 
         try{
-            setIsSaving(true);
+
+            setIsUpdating(true);
+
             const token = localStorage.getItem("token");
 
             if(token == null){
@@ -42,7 +62,8 @@ export default function AdminAddProductPage(){
             }
 
             const urls = await Promise.all(mediaUploadPromises);
-            
+
+
             const altNamesArray = altNames.split(",")
 
             const productData = {
@@ -60,8 +81,12 @@ export default function AdminAddProductPage(){
                 stock : stock
             }
 
+            if(urls.length == 0){
+                productData.images = location.state.images;
+            }
 
-            await axios.post(import.meta.env.VITE_API_URL+"/products", productData,
+
+            await axios.put(import.meta.env.VITE_API_URL+"/products/"+productId, productData,
                 {
                     headers : {
                         "Authorization" : "Bearer "+token
@@ -69,106 +94,37 @@ export default function AdminAddProductPage(){
                 }
             )
 
-            toast.success("Product added successfully!");
+            toast.success("Product updated successfully!");
             //
             navigate("/admin/products");
 
 
         }catch(error){
-            setIsSaving(false);
-            console.error("Error adding product:", error);
+            setIsUpdating(false);
+            console.error("Error updating product:", error);
             console.log("Error response data:", error?.response);
-            toast.error(error?.response?.data?.message || "Failed to add product. Please try again.")
+            toast.error(error?.response?.data?.message || "Failed to update product. Please try again.")
         }
     }
 
-   function handleClear(){
-
-    toast((t) => (
-        <div className="flex flex-col gap-3">
-            <p className="font-medium text-gray-800">
-                Are you sure you want to clear the form?
-            </p>
-
-            <div className="flex gap-2 justify-end">
-                <button
-                    onClick={() => toast.dismiss(t.id)}
-                    className="px-3 py-1 rounded-lg bg-gray-200 hover:bg-gray-300"
-                >
-                    Cancel
-                </button>
-
-                <button
-                    onClick={() => {
-                        // CLEAR FORM
-                        setProductId("");
-                        setName("");
-                        setAltNames("");
-                        setPrice("");
-                        setLabelledPrice("");
-                        setDescription("");
-                        setImages([]);
-                        setBrand("");
-                        setModel("");
-                        setCategory("");
-                        setIsAvailable(true);
-                        setStock(0);
-
-                        toast.dismiss(t.id);
-                        toast.success("Form cleared!");
-                    }}
-                    className="px-3 py-1 rounded-lg bg-red-500 text-white hover:bg-red-600"
-                >
-                    Yes, Clear
-                </button>
-            </div>
-        </div>
-    ));
-}
-
     return(
         <div className="w-full h-full flex flex-col items-center p-4 overflow-y-scroll">
-            <div className="sticky top-0 w-full h-[100px] rounded-2xl 
-                bg-gradient-to-r from-[#8e51ff]  to-indigo-600 
-                text-white flex items-center px-6 justify-between shadow-xl backdrop-blur-md">
-
-                <h1 className="text-2xl font-semibold tracking-wide">
-                    Add New Product
-                </h1>
-
-                <div className="flex items-center gap-3">
-
-                    {/* Save Button */}
-                    <button 
-                        onClick={handleSave} 
-                        className="px-5 py-2 rounded-xl font-medium 
-                        bg-white/20 backdrop-blur-md border border-white/30
-                        hover:bg-white/30 transition-all duration-200 
-                        shadow-md hover:shadow-lg"
-                        disabled={isSaving}
-                    >
-                        {isSaving ? "Saving..." : "Save"}
+            <div className="sticky top-0 w-full h-[100px] rounded-lg bg-accent text-white flex items-center p-5 justify-between shadow-2xl">
+                <h1 className="text-2xl  font-semibold">Edit Product</h1>
+                <div className="h-full  flex justify-center items-center">
+                    <button onClick={handleSave} className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600" disabled={isUpdating}>
+                        {isUpdating ? "Updating..." : "Update"}
                     </button>
-
-                    {/* Cancel Button */}
-                    <button 
-                        onClick={handleClear}
-                        className="px-5 py-2 rounded-xl font-medium 
-                        bg-black/20 backdrop-blur-md border border-white/20
-                        hover:bg-black/30 transition-all duration-200 
-                        shadow-md hover:shadow-lg"
-                    >
-                        Cancel
-                    </button>
-
+                    <button className="ml-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">Cancel</button>
                 </div>
             </div>
-            <div className="w-full h-[calc(100%-100px)] flex flex-wrap bg-white shadow-2xl p-5 mt-8 rounded-lg">
+            <div className="w-full flex flex-wrap bg-white shadow-2xl p-5 mt-8 rounded-lg">
                 
                 <div className="w-1/4   p-2">
                     <label className="block mb-2 font-semibold">Product ID</label>
                     <input className="border border-gray-300 rounded-md p-2 w-full"
                         value={productId}
+                        disabled={true}
                         onChange={(e)=>{setProductId(e.target.value)}}
                     />
                 </div>
@@ -209,7 +165,6 @@ export default function AdminAddProductPage(){
                             setCategory(e.target.value);                            
                         }                        
                     } className="border border-gray-300 rounded-md p-2 w-full">
-                        <option>Choose Category</option>
                         <option value="Laptop" >Laptop</option>
                         <option value="Mobile">Mobile</option>
                         <option value="Headphones">Headphones</option>
@@ -250,7 +205,6 @@ export default function AdminAddProductPage(){
                                 setBrand(e.target.value);                            
                             }
                         } className="border border-gray-300 rounded-md p-2 w-full  ">
-                        <option>Select Brand</option>
                         <option value="Apple" >Apple</option>
                         <option value="Samsung">Samsung</option>
                         <option value="Sony">Sony</option>

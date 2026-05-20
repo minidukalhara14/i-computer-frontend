@@ -1,7 +1,10 @@
+import { useGoogleLogin } from "@react-oauth/google"
 import axios from "axios"
 import { useState } from "react"
 import toast from "react-hot-toast"
+import { FcGoogle } from "react-icons/fc"
 import { Link, useNavigate } from "react-router-dom"
+import api from "../utils/api"
 
 export default function LogingPage() {
 
@@ -9,10 +12,31 @@ export default function LogingPage() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const navigate = useNavigate();
+    const googleLogin = useGoogleLogin(
+        {
+            onSuccess: (response)=>{
+                api.post("/users/google-login",{
+                    token : response.access_token
+                }).then((response)=>{
+                    localStorage.setItem("token" , response.data.token);
+                    toast.success("Login successful!");
+                    if(response.data.isAdmin){
+                        navigate("/admin")
+                    }else{
+                        navigate("/")
+                    }
+                }).catch(()=>{
+                    toast.error("Google login failed!")
+                })
+            },
+            onError: ()=>{
+                toast.error("Google login failed!")
+            }
+        }
+    )
 
-    function handleLogin() {
-        console.log("Email:", email)
-        console.log("Password:", password)
+    function handleLogin() { 
+        
 
         axios.post(import.meta.env.VITE_API_URL + "/users/login",{
             email: email,
@@ -40,12 +64,12 @@ export default function LogingPage() {
 
     return(
         <div className="bg-[url('/login-bg.jpg')] bg-center bg-cover h-full w-screen flex justify-center items-center">
-            <div className="w-1/2 h-full ">
+            <div className="w-0 lg:w-1/2 h-full ">
             
 
             </div>
-            <div className="w-1/2 h-full   flex justify-center items-center">
-                <div className="w-[400px] h-[500px] backdrop-blur-lg rounded-xl flex flex-col justify-center items-center ">
+            <div className="w-[90%] lg:w-1/2 h-full   flex justify-center items-center">
+                <div className="w-[400px]  h-[500px] backdrop-blur-lg rounded-xl flex flex-col justify-center items-center ">
                     
                     <h1 className="text-4xl font-bold text-secondary mb-8">
                         Sign in
@@ -77,6 +101,9 @@ export default function LogingPage() {
                     
                     <button onClick={handleLogin} className="w-3/4 p-3 bg-secondary text-primary rounded-lg hover:bg-accent hover:text-secondary transition-colors duration-300">
                         Login
+                    </button>
+                    <button onClick={googleLogin} className="w-3/4 p-3 bg-white text-accent rounded-lg hover:bg-gray-200 transition-colors duration-300 mt-4 flex items-center justify-center gap-2">
+                       <FcGoogle /> Sign in with Google
                     </button>
                     <p className="mt-6 w-3/4 text-center">Don't have an account? <Link to="/register" className="text-primary hover:text-accent"> Sign up</Link></p>
                 </div>

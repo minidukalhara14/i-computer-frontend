@@ -1,11 +1,13 @@
 import {Link, Route, Routes } from "react-router-dom";
 import AdminProductPage from "./admin/adminProductPage";
 import AdminAddProduct from "./admin/adminAddProduct";
+import AdminEditProductPage from "./admin/adminEditProduct";
+import AdminOrdersPage from "./admin/adminOrdersPage";
 
 export default function AdminPage() {
     return (
         <div className="w-full h-screen flex  items-center bg-accent">
-            <div className="h-full w-[300px] ">
+            <div className="h-full w-[300px]  ">
                 
 
                 <Link to="/admin" className="block text-2xl text-secondary p-4 hover:bg-primary">Orders</Link>
@@ -16,9 +18,10 @@ export default function AdminPage() {
 
             <div className="h-full w-[calc(100%-300px)] bg-primary border-[10px] border-accent rounded-2xl">
             <Routes>
-                <Route path="/" element={<h1 className="text-3xl text-secondary">Oder Dashbord</h1>} />
+                <Route path="/" element={<AdminOrdersPage />} />
                 <Route path="/products" element={<AdminProductPage />} />
                 <Route path="/add-product" element={<AdminAddProduct />} />
+                <Route path="/edit-product" element={<AdminEditProductPage/>}/>
 
                 <Route path="/users" element={<h1 className="text-3xl text-secondary">User Dashbord</h1>} />
                 <Route path="/reviews" element={<h1 className="text-3xl text-secondary">Review Dashbord</h1>} />
